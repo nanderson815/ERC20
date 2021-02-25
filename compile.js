@@ -20,7 +20,9 @@ var input = {
     },
   },
 };
-// console.log(JSON.parse(solc.compile(JSON.stringify(input))).contracts['Token.sol']);
+console.log(
+  JSON.parse(solc.compile(JSON.stringify(input))).contracts["Token.sol"]
+);
 module.exports = JSON.parse(solc.compile(JSON.stringify(input))).contracts[
   "Token.sol"
 ]["Token"];
