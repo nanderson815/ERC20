@@ -21,7 +21,7 @@ const deploy = async () => {
   const result = await new web3.eth.Contract(abi)
     .deploy({
       data: evm.bytecode.object,
-      arguments: ["Hi there!!"],
+      arguments: [], // TODO: Add arguments
     })
     .send({ from: accounts[0], gas: "1000000" });
 
