@@ -131,46 +131,46 @@ contract StandardToken is Token {
 
 contract NoaToken is StandardToken, SafeMath {
     // metadata
-    string public constant name = "Noah Token";
-    string public constant symbol = "NOH";
+    string public constant name = "Stanley Nickel";
+    string public constant symbol = "STN";
     uint256 public constant decimals = 18;
     string public version = "1.0";
 
     // contracts
     address payable public ethFundDeposit; // deposit address for ETH
-    address public nohFundDeposit; // deposit address for NOH User Fund
+    address public stnFundDeposit; // deposit address for stn User Fund
 
     // crowdsale parameters
     bool public isFinalized; // switched to true in operational state
     uint256 public fundingStartBlock;
     uint256 public fundingEndBlock;
-    uint256 public constant nohFund = 500 * (10**6) * 10**decimals; // 500m NOH reserved for "stuff"
-    uint256 public constant tokenExchangeRate = 6400; // 6400 NOH tokens per 1 ETH
+    uint256 public constant stnFund = 500 * (10**6) * 10**decimals; // 500m stn reserved for "stuff"
+    uint256 public constant tokenExchangeRate = 6400; // 6400 stn tokens per 1 ETH
     uint256 public constant tokenCreationCap = 1500 * (10**6) * 10**decimals;
     uint256 public constant tokenCreationMin = 675 * (10**6) * 10**decimals;
 
     // events
     event LogRefund(address indexed _to, uint256 _value);
-    event CreateNOH(address indexed _to, uint256 _value);
+    event CreateSTN(address indexed _to, uint256 _value);
 
     // constructor
     constructor(
         address payable _ethFundDeposit,
-        address _nohFundDeposit,
+        address _stnFundDeposit,
         uint256 _fundingStartBlock,
         uint256 _fundingEndBlock
     ) {
         isFinalized = false; //controls pre through crowdsale state
         ethFundDeposit = _ethFundDeposit;
-        nohFundDeposit = _nohFundDeposit;
+        stnFundDeposit = _stnFundDeposit;
         fundingStartBlock = _fundingStartBlock;
         fundingEndBlock = _fundingEndBlock;
-        totalSupply = nohFund;
-        balances[nohFundDeposit] = nohFund; // Deposit Noah share
-        emit CreateNOH(nohFundDeposit, nohFund); // logs Noah fund
+        totalSupply = stnFund;
+        balances[stnFundDeposit] = stnFund; // Deposit Stanley share
+        emit CreateSTN(stnFundDeposit, stnFund); // logs Stanley fund
     }
 
-    /// @dev Accepts ether and creates new NOH tokens.
+    /// @dev Accepts ether and creates new stn tokens.
     function createTokens() external payable {
         if (isFinalized) revert();
         if (block.number < fundingStartBlock) revert();
@@ -185,7 +185,7 @@ contract NoaToken is StandardToken, SafeMath {
 
         totalSupply = checkedSupply;
         balances[msg.sender] += tokens; // safeAdd not needed; bad semantics to use here
-        CreateNOH(msg.sender, tokens); // logs token creation
+        CreateSTN(msg.sender, tokens); // logs token creation
     }
 
     /// @dev Ends the funding period and sends the ETH home
@@ -197,7 +197,7 @@ contract NoaToken is StandardToken, SafeMath {
             revert();
         // move to operational
         isFinalized = true;
-        if (!ethFundDeposit.send(address(this).balance)) revert(); // send the eth to Noah
+        if (!ethFundDeposit.send(address(this).balance)) revert(); // send the eth to Stanley
     }
 
     /// @dev Allows contributors to recover their ether in the case of a failed funding campaign.
@@ -205,12 +205,12 @@ contract NoaToken is StandardToken, SafeMath {
         if (isFinalized) revert(); // prevents refund if operational
         if (block.number <= fundingEndBlock) revert(); // prevents refund until sale period is over
         if (totalSupply >= tokenCreationMin) revert(); // no refunds if we sold enough
-        if (msg.sender == nohFundDeposit) revert(); // Noah not entitled to a refund
-        uint256 nohVal = balances[msg.sender];
-        if (nohVal == 0) revert();
+        if (msg.sender == stnFundDeposit) revert(); // Stanley not entitled to a refund
+        uint256 stnVal = balances[msg.sender];
+        if (stnVal == 0) revert();
         balances[msg.sender] = 0;
-        totalSupply = safeSubtract(totalSupply, nohVal); // extra safe
-        uint256 ethVal = nohVal / tokenExchangeRate; // should be safe; previous revert()s covers edges
+        totalSupply = safeSubtract(totalSupply, stnVal); // extra safe
+        uint256 ethVal = stnVal / tokenExchangeRate; // should be safe; previous revert()s covers edges
         LogRefund(msg.sender, ethVal); // log it
         if (!payable(msg.sender).send(ethVal)) revert(); // if you're using a contract; make sure it works with .send gas limits
     }
