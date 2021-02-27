@@ -8,4 +8,4 @@
 
 ## What are Stanley Nickels?
 
-Stanley Nickels are an [ERC20](https://ethereum.org/en/developers/docs/standards/tokens/erc-20/) token built on the Ethereum blockchain. They can be exchanged for Shrute Bucks at the same as the ratio of unicorns to leprechauns.
+Stanley Nickels are an [ERC20](https://ethereum.org/en/developers/docs/standards/tokens/erc-20/) token built on the Ethereum blockchain. They can be exchanged for Shrute Bucks at the same ratio as unicorns to leprechauns.
