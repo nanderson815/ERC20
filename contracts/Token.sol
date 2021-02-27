@@ -129,7 +129,7 @@ contract StandardToken is Token {
     mapping(address => mapping(address => uint256)) allowed;
 }
 
-contract NoaToken is StandardToken, SafeMath {
+contract STNToken is StandardToken, SafeMath {
     // metadata
     string public constant name = "Stanley Nickel";
     string public constant symbol = "STN";
