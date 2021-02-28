@@ -193,17 +193,17 @@ contract STNToken is StandardToken, SafeMath {
     }
 
     /// @dev Allows contributors to recover their ether in the case of a failed funding campaign.
-    // function refund() external {
-    //     if (isFinalized) revert(); // prevents refund if operational
-    //     if (block.number <= fundingEndBlock) revert(); // prevents refund until sale period is over
-    //     if (totalSupply >= tokenCreationMin) revert(); // no refunds if we sold enough
-    //     if (msg.sender == stnFundDeposit) revert(); // Stanley not entitled to a refund
-    //     uint256 stnVal = balances[msg.sender];
-    //     if (stnVal == 0) revert();
-    //     balances[msg.sender] = 0;
-    //     totalSupply = safeSubtract(totalSupply, stnVal); // extra safe
-    //     uint256 ethVal = stnVal / tokenExchangeRate; // should be safe; previous revert()s covers edges
-    //     LogRefund(msg.sender, ethVal); // log it
-    //     if (!payable(msg.sender).send(ethVal)) revert(); // if you're using a contract; make sure it works with .send gas limits
-    // }
+    function refund() external {
+        if (isFinalized) revert(); // prevents refund if operational
+        // if (block.number <= fundingEndBlock) revert(); // prevents refund until sale period is over
+        if (totalSupply >= tokenCreationMin) revert(); // no refunds if we sold enough
+        if (msg.sender == stnFundDeposit) revert(); // Stanley not entitled to a refund
+        uint256 stnVal = balances[msg.sender];
+        if (stnVal == 0) revert();
+        balances[msg.sender] = 0;
+        totalSupply = safeSubtract(totalSupply, stnVal); // extra safe
+        uint256 ethVal = stnVal / tokenExchangeRate; // should be safe; previous revert()s covers edges
+        LogRefund(msg.sender, ethVal); // log it
+        if (!payable(msg.sender).send(ethVal)) revert(); // if you're using a contract; make sure it works with .send gas limits
+    }
 }
