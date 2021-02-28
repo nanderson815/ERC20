@@ -166,7 +166,7 @@ contract STNToken is StandardToken, SafeMath {
         if (isFinalized) revert();
         if (msg.value == 0) revert();
 
-        uint256 tokens = safeMult(msg.value, tokenExchangeRate); // convert to ether from wei, check that we're not over totals
+        uint256 tokens = safeMult(msg.value, tokenExchangeRate); // check that we're not over totals
         uint256 checkedSupply = safeAdd(totalSupply, tokens);
 
         // return money if something goes wrong
