@@ -142,10 +142,8 @@ contract STNToken is StandardToken, SafeMath {
 
     // crowdsale parameters
     bool public isFinalized; // switched to true in operational state
-    uint256 public fundingStartBlock;
-    uint256 public fundingEndBlock;
-    uint256 public constant stnFund = 500 * (10**6) * 10**decimals; // 500m stn reserved for "stuff"
-    uint256 public constant tokenExchangeRate = 6400; // 6400 stn tokens per 1 ETH
+    uint256 public constant stnFund = 500 * (10**6) * 10**decimals; // 500m STN reserved for "stuff"
+    uint256 public constant tokenExchangeRate = 1000; // 10000 STN tokens per 1 ETH
     uint256 public constant tokenCreationCap = 1500 * (10**6) * 10**decimals;
     uint256 public constant tokenCreationMin = 675 * (10**6) * 10**decimals;
 
@@ -154,17 +152,10 @@ contract STNToken is StandardToken, SafeMath {
     event CreateSTN(address indexed _to, uint256 _value);
 
     // constructor
-    constructor(
-        address payable _ethFundDeposit,
-        address _stnFundDeposit,
-        uint256 _fundingStartBlock,
-        uint256 _fundingEndBlock
-    ) {
+    constructor(address payable _ethFundDeposit, address _stnFundDeposit) {
         isFinalized = false; //controls pre through crowdsale state
         ethFundDeposit = _ethFundDeposit;
         stnFundDeposit = _stnFundDeposit;
-        fundingStartBlock = _fundingStartBlock;
-        fundingEndBlock = _fundingEndBlock;
         totalSupply = stnFund;
         balances[stnFundDeposit] = stnFund; // Deposit Stanley share
         emit CreateSTN(stnFundDeposit, stnFund); // logs Stanley fund
@@ -173,11 +164,9 @@ contract STNToken is StandardToken, SafeMath {
     /// @dev Accepts ether and creates new stn tokens.
     function createTokens() external payable {
         if (isFinalized) revert();
-        if (block.number < fundingStartBlock) revert();
-        if (block.number > fundingEndBlock) revert();
         if (msg.value == 0) revert();
 
-        uint256 tokens = safeMult(msg.value, tokenExchangeRate); // check that we're not over totals
+        uint256 tokens = safeMult(msg.value, tokenExchangeRate); // convert to ether from wei, check that we're not over totals
         uint256 checkedSupply = safeAdd(totalSupply, tokens);
 
         // return money if something goes wrong
@@ -193,25 +182,28 @@ contract STNToken is StandardToken, SafeMath {
         if (isFinalized) revert();
         if (msg.sender != ethFundDeposit) revert(); // locks finalize to the ultimate ETH owner
         if (totalSupply < tokenCreationMin) revert(); // have to sell minimum to move to operational
-        if (block.number <= fundingEndBlock && totalSupply != tokenCreationCap)
-            revert();
+        if (totalSupply != tokenCreationCap) revert();
+        if (!ethFundDeposit.send(address(this).balance)) revert(); // send the eth to Stanley
         // move to operational
         isFinalized = true;
-        if (!ethFundDeposit.send(address(this).balance)) revert(); // send the eth to Stanley
+    }
+
+    function checkETHBalance() external view returns (uint256) {
+        return address(this).balance;
     }
 
     /// @dev Allows contributors to recover their ether in the case of a failed funding campaign.
-    function refund() external {
-        if (isFinalized) revert(); // prevents refund if operational
-        if (block.number <= fundingEndBlock) revert(); // prevents refund until sale period is over
-        if (totalSupply >= tokenCreationMin) revert(); // no refunds if we sold enough
-        if (msg.sender == stnFundDeposit) revert(); // Stanley not entitled to a refund
-        uint256 stnVal = balances[msg.sender];
-        if (stnVal == 0) revert();
-        balances[msg.sender] = 0;
-        totalSupply = safeSubtract(totalSupply, stnVal); // extra safe
-        uint256 ethVal = stnVal / tokenExchangeRate; // should be safe; previous revert()s covers edges
-        LogRefund(msg.sender, ethVal); // log it
-        if (!payable(msg.sender).send(ethVal)) revert(); // if you're using a contract; make sure it works with .send gas limits
-    }
+    // function refund() external {
+    //     if (isFinalized) revert(); // prevents refund if operational
+    //     if (block.number <= fundingEndBlock) revert(); // prevents refund until sale period is over
+    //     if (totalSupply >= tokenCreationMin) revert(); // no refunds if we sold enough
+    //     if (msg.sender == stnFundDeposit) revert(); // Stanley not entitled to a refund
+    //     uint256 stnVal = balances[msg.sender];
+    //     if (stnVal == 0) revert();
+    //     balances[msg.sender] = 0;
+    //     totalSupply = safeSubtract(totalSupply, stnVal); // extra safe
+    //     uint256 ethVal = stnVal / tokenExchangeRate; // should be safe; previous revert()s covers edges
+    //     LogRefund(msg.sender, ethVal); // log it
+    //     if (!payable(msg.sender).send(ethVal)) revert(); // if you're using a contract; make sure it works with .send gas limits
+    // }
 }
